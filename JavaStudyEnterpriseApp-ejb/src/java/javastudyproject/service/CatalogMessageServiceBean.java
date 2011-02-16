@@ -15,9 +15,9 @@ import javax.jms.TextMessage;
 public class CatalogMessageServiceBean implements CatalogMessageService {
 
     
-    @Resource(mappedName = "jms/orderCatalogFactory")
+    @Resource(mappedName = "orderCatalogFactory")
     private ConnectionFactory connectionFactory;
-    @Resource(mappedName = "jms/orderCatalogQueue")
+    @Resource(mappedName = "orderCatalogQueue")
     private Queue queue;
 
     @Override
@@ -27,7 +27,8 @@ public class CatalogMessageServiceBean implements CatalogMessageService {
         MessageProducer messageProducer = session.createProducer(queue);
 
         TextMessage message = session.createTextMessage();
-        message.setObjectProperty("category", category);
+        message.setObjectProperty("create_category", true);
+        message.setObjectProperty("categoryName", category.getName());
 
         messageProducer.send(message);
     }
@@ -40,7 +41,8 @@ public class CatalogMessageServiceBean implements CatalogMessageService {
         MessageProducer messageProducer = session.createProducer(queue);
         
         TextMessage message = session.createTextMessage();
-        message.setObjectProperty("product", product);
+        message.setObjectProperty("create_product", true);
+        message.setObjectProperty("product", product.getName());
         
         messageProducer.send(message);
     }

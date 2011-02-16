@@ -1,6 +1,8 @@
 package javastudyproject.mdb;
 
+import javastudyproject.service.ProductsOps;
 import javax.ejb.ActivationConfigProperty;
+import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -11,15 +13,27 @@ import javax.jms.MessageListener;
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue")
     })
 public class MessageDrivenBean implements MessageListener {
-    
+
+    static ProductsOps productService;
+
     public MessageDrivenBean() {
     }
 
     @Override
     public void onMessage(Message message)
     {
-        System.out.println("new message has arrived");
-
+        try {
+            if (message.propertyExists("create_category"))
+            {
+                // create new category
+                productService.addNewCategory(message.getStringProperty("categoryName"));
+            }
+            else if (message.propertyExists("create_product"))
+            {
+                // craete new product
+            }
+        }
+        catch (Exception ee) {}
     }
 
     
