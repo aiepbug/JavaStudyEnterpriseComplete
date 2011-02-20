@@ -1,5 +1,7 @@
 package javastudyproject.mdb;
 
+import java.util.List;
+import javastudyproject.model.Category;
 import javastudyproject.service.ProductsOps;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
@@ -14,7 +16,7 @@ import javax.jms.MessageListener;
     })
 public class MessageDrivenBean implements MessageListener {
 
-    static ProductsOps productService;
+    @EJB ProductsOps productService;
 
     public MessageDrivenBean() {
     }
@@ -31,6 +33,22 @@ public class MessageDrivenBean implements MessageListener {
             else if (message.propertyExists("create_product"))
             {
                 // craete new product
+                Category catContainer = null;
+                List<Category> categories = productService.getAllCategories();
+                for (Category cat : categories)
+                {
+                    if (cat.getRunId() == Integer.parseInt(message.getStringProperty("productCategoryId")))
+                    {
+                        catContainer = cat;
+                        break;
+                    }
+                }
+
+                productService.addNewProduct(message.getStringProperty("productName"),
+                                             message.getStringProperty("productSerial"),
+                                             Double.parseDouble(message.getStringProperty("productPrice")),
+                                             Integer.parseInt(message.getStringProperty("productQuantity")),
+                                             catContainer);
             }
         }
         catch (Exception ee) {}

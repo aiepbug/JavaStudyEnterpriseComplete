@@ -42,8 +42,12 @@ public class CatalogMessageServiceBean implements CatalogMessageService {
         
         TextMessage message = session.createTextMessage();
         message.setObjectProperty("create_product", true);
-        message.setObjectProperty("product", product.getName());
-        
+        message.setObjectProperty("productName", product.getName());
+        message.setObjectProperty("productSerial", product.getSerialNumber());
+        message.setObjectProperty("productQuantity", product.getQuantity());
+        message.setObjectProperty("productCategoryId", product.getCategory().getRunId());
+        message.setObjectProperty("productPrice", product.getPrice());
+
         messageProducer.send(message);
     }
 }
