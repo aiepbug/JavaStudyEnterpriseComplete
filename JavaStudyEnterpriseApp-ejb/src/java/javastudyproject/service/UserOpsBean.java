@@ -355,7 +355,7 @@ public class UserOpsBean implements UserOps{
             {
                 //em.getTransaction().begin();
                 em.persist(new AdministratorUser("admin", "admin", "admin",
-                        "admin", "admin@root.com", "123456", "99"));
+                        "admin", "alonpis@gmail.com", "123456", "99"));
                 //em.flush();
                 //em.getTransaction().commit();
             }

@@ -1,6 +1,9 @@
 package javastudyproject.service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import javastudyproject.model.Category;
@@ -44,25 +47,14 @@ public class ProductsOpsBean implements ProductsOps{
     {
         try
         {
-            //em.getTransaction().begin();
             em.persist(new Product(name, category, serialNum, price, quantity));
-            //em.flush();
-            //em.getTransaction().commit();
         }
         catch(EntityExistsException e)
         {
-            //if (em.getTransaction().isActive())
-            //{
-             //   em.getTransaction().rollback();
-           // }
             SystemReporter.report("The specific product is already exists. EM exception: " + e.getMessage(), true);
         }
         catch(Exception e)
         {
-            //if (em.getTransaction().isActive())
-           // {
-           //     em.getTransaction().rollback();
-           // }
             SystemReporter.report(
                     "Catched exception when performed write to DB: " + e.getMessage(), true);
         }
@@ -78,25 +70,14 @@ public class ProductsOpsBean implements ProductsOps{
     {
         try
         {
-          //  em.getTransaction().begin();
             em.persist(new Category(name));
-         //   em.flush();
-        //    em.getTransaction().commit();
         }
         catch(EntityExistsException e)
         {
-          //  if (em.getTransaction().isActive())
-          //  {
-         //       em.getTransaction().rollback();
-         //   }
             SystemReporter.report("The specific category is already exists. EM exception: " + e.getMessage(), true);
         }
         catch(Exception e)
         {
-         //   if (em.getTransaction().isActive())
-        //    {
-        //        em.getTransaction().rollback();
-        //    }
             SystemReporter.report(
                     "Catched exception when performed write to DB: " + e.getMessage(), true);
         }
@@ -123,17 +104,14 @@ public class ProductsOpsBean implements ProductsOps{
      */
     public void updateProductByName(ProductCriteria criteria, String name, Product productContainer) throws Exception
     {
-     //   em.getTransaction().begin();
         Product product = em.find(Product.class, name);
         switch(criteria)
         {
             case name:
-                //TODO: validating that the new name is unique
                 product.setName(productContainer.getName());
                 SystemReporter.report("Updating product name to: " + productContainer.getName());
                 break;
             case serialNum:
-                //TODO: validating that the new sn is unique
                 product.setSerialNumber(productContainer.getSerialNumber());
                 SystemReporter.report(
                         "Updating product serial number to: " + productContainer.getSerialNumber());
@@ -159,15 +137,9 @@ public class ProductsOpsBean implements ProductsOps{
         try
         {
             em.merge(product);
-       //     em.flush();
-        //    em.getTransaction().commit();
         }
         catch(Exception e)
         {
-           // if (em.getTransaction().isActive())
-          //  {
-           //     em.getTransaction().rollback();
-           // }
             SystemReporter.report(
                     "Catched exception when performed write to DB: " + e.getMessage(), true);
         }
@@ -347,6 +319,11 @@ public class ProductsOpsBean implements ProductsOps{
      */
     public Product getMostSaleableProduct() throws Exception
     {
+       return getMostSaleableProduct(false);
+    }
+
+    public Product getMostSaleableProduct(boolean verifyLastDay) throws Exception
+    {
         Query query = em.createQuery("SELECT o FROM Order o");
         List<Order> orders =query.getResultList();
         if (orders.isEmpty())
@@ -356,6 +333,15 @@ public class ProductsOpsBean implements ProductsOps{
         HashMap<Product, Integer> productAmount =  new HashMap<Product, Integer>();
         for (Order order : orders)
         {
+            if (verifyLastDay)
+            {
+                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+                Date now = dateFormat.parse(dateFormat.format(new Date()));
+                if ((now.getTime() - order.getOrderDate().getTime()) > 1000 * 60 * 60 * 24) //Check if the order is from last day
+                {
+                    continue;
+                }
+            }
             for (Product product : order.getProducts())
             {
                 if (productAmount.containsKey(product))
@@ -377,10 +363,60 @@ public class ProductsOpsBean implements ProductsOps{
             if (productAmount.get(product) >= max)
             {
                 max = productAmount.get(product);
-                mostSaleble = product;
+                mostSaleble.setName(product.getName());
+                mostSaleble.setCategory(product.getCategory());
+                mostSaleble.setPrice(product.getPrice());
+                mostSaleble.setSerialNumber(product.getSerialNumber());
             }
         }
-        return mostSaleble;
+        return mostSaleble.setQuantity(max);
+    }
+
+    public Product getLeastSaleableProductOnLast24Hours() throws Exception
+    {
+       Query query = em.createQuery("SELECT o FROM Order o");
+        List<Order> orders =query.getResultList();
+        if (orders.isEmpty())
+        {
+            SystemReporter.report("There is no orders in the system", true);
+        }
+        HashMap<Product, Integer> productAmount =  new HashMap<Product, Integer>();
+        for (Order order : orders)
+        {
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+            Date now = dateFormat.parse(dateFormat.format(new Date()));
+            if ((now.getTime() - order.getOrderDate().getTime()) > 1000 * 60 * 60 * 24) //Check if the order is from last day
+            {
+                continue;
+            }
+            for (Product product : order.getProducts())
+            {
+                if (productAmount.containsKey(product))
+                {
+                    int currAmount = productAmount.get(product);
+                    currAmount += currAmount + product.getQuantity();
+                    productAmount.put(product, currAmount);
+                }
+                else
+                {
+                    productAmount.put(product, product.getQuantity());
+                }
+            }
+        }
+        Product leastSalebale = new Product();
+        int min = 999999999;
+        for (Product product : productAmount.keySet())
+        {
+            if (productAmount.get(product) <= min)
+            {
+                min = productAmount.get(product);
+                leastSalebale.setName(product.getName());
+                leastSalebale.setCategory(product.getCategory());
+                leastSalebale.setPrice(product.getPrice());
+                leastSalebale.setSerialNumber(product.getSerialNumber());
+            }
+        }
+        return leastSalebale.setQuantity(min);
     }
 
     /**

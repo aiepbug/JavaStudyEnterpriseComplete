@@ -35,7 +35,7 @@ public class Main {
         try
         {
             userService.createAdminUserIfNeeded();
-             new LoginScreen();
+            new LoginScreen();
         }
         catch(Exception e)
         {

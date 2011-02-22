@@ -6,6 +6,7 @@
 package javastudyproject.model;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -19,6 +20,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -43,10 +45,10 @@ public class Order implements Serializable{
     @Temporal(TemporalType.DATE)
     private Date deliveryDate;
     private double totalPrice;
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinTable(name = "joined_orders_products",
-    joinColumns = {@JoinColumn(name = "order_id")},
-    inverseJoinColumns = {@JoinColumn(name = "product_name")})
+    @OneToMany
+    @JoinTable(name = "JOINED_ORDERS_PRODUCTS",
+    joinColumns = {@JoinColumn(name = "ORDER_ID")},
+    inverseJoinColumns = {@JoinColumn(name = "PRODUCT_NAME")})
     private  List<Product> orderProducts;
     @Enumerated(EnumType.STRING)
     private DeliveryType deliveryType;
@@ -56,7 +58,7 @@ public class Order implements Serializable{
     //constructors
     public Order() {}
 
-    public Order(User user, Date deliveryDate, DeliveryType deliveryType)
+    public Order(User user, Date deliveryDate, DeliveryType deliveryType) throws ParseException
     {
         orderProducts = new ArrayList<Product>();
         this.user = user;

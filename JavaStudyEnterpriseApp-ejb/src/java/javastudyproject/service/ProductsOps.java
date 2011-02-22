@@ -26,6 +26,7 @@ public interface ProductsOps {
     public void printProductInfoImpl(Product product) throws Exception;
     public List<Product> getProductsByPrice(LergerSmaller by, double price) throws Exception;
     public void printProductsByCategory(Category category) throws Exception;
+    public Product getMostSaleableProduct(boolean verifyLastDay ) throws Exception;
     public Product getMostSaleableProduct() throws Exception;
     public List<Product> getSortedProductsByPrice() throws Exception;
     public void printAllCategories() throws Exception;
@@ -34,4 +35,5 @@ public interface ProductsOps {
     public List<Product> getAllProducts();
     public void printAllProducts() throws Exception;
     public List<Category> getAllCategories();
+    public Product getLeastSaleableProductOnLast24Hours() throws java.lang.Exception;
 }

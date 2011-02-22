@@ -37,16 +37,10 @@ public class OrderOpsBean implements OrderOps{
         order.updateState(status);
         try
         {
-            //em.getTransaction().begin();
             em.merge(order);
-            //em.getTransaction().commit();
         }
         catch(Exception e)
         {
-       //     if (em.getTransaction().isActive())
-       //     {
-       //         em.getTransaction().rollback();
-       //     }
             SystemReporter.report(
                     "Catched exception when performed write to DB: " + e.getMessage(), true);
         }
@@ -138,7 +132,7 @@ public class OrderOpsBean implements OrderOps{
 
     public List<Order> getAllOrdersByUserID(int userID)
     {
-        Query query = em.createQuery("select o from Order o where o.id = "+userID);
+        Query query = em.createQuery("select o from Order o where o.id = " + userID);
         List<Order> orders = (List<Order> )query.getResultList();
         return orders;
     }
@@ -147,24 +141,14 @@ public class OrderOpsBean implements OrderOps{
     {
         try
         {
-          //  em.getTransaction().begin();
             em.persist(order);
-         //   em.getTransaction().commit();
         }
         catch(EntityExistsException e)
         {
-          //  if (em.getTransaction().isActive())
-          //  {
-           //     em.getTransaction().rollback();
-           // }
             SystemReporter.report("The specific order is already exists. EM exception: " + e.getMessage(), true);
         }
         catch(Exception ex)
         {
-            //if (em.getTransaction().isActive())
-           // {
-            //    em.getTransaction().rollback();
-            //}
             SystemReporter.report(
                     "Catched exception when performed write to DB: " + ex.getMessage(), true);
         }

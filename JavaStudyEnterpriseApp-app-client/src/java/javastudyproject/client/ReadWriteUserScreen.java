@@ -228,8 +228,6 @@ public class ReadWriteUserScreen {
      */
     public void CreateNewOrder() throws Exception
     {
-
-        //TODO: need to integrate the em
         List<Product> myProductList = new ArrayList<Product>();
         
         //To dynamicaly update the product amount in case that the order didn't take place
@@ -276,7 +274,7 @@ public class ReadWriteUserScreen {
                 case 2: {deliveryType =Order.DeliveryType.Shipping; }break;
             }
 
-            //Updating the
+            //Updating the date
             Date date = null;
             if (deliveryType.equals(Order.DeliveryType.Shipping))
             {
@@ -289,13 +287,14 @@ public class ReadWriteUserScreen {
             System.out.println("2. Back to main menu\n");
             System.out.print("Your choise: ");
 
-            int choise=  Integer.parseInt(reader.readLine());
+            int choise =  Integer.parseInt(reader.readLine());
             switch (choise) {
                 case 1:
                     Order newOrder = new Order(workingUser, date, deliveryType);
                     newOrder.addMultipleProducts(myProductList);
                     newOrder = updateOrderTotalPrice(newOrder);
                     updateTheProductsQuantityByOrder(newOrder);
+                    Main.productService.printAllProducts();
                     Main.orderService.addNewOrder(newOrder);
 
                     break;
