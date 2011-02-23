@@ -46,5 +46,7 @@ public interface UserOps {
      public List<User> getAllUsers();
      public void printAllUsers() throws Exception;
      public void createAdminUserIfNeeded() throws Exception;
+     public String GetEmailSourceAddress() throws Exception;
+     public void StoreEmailSourceAddress(String email);
 
 }

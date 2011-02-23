@@ -1,8 +1,11 @@
 package javastudyproject.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import javastudyproject.model.Order;
 import javastudyproject.model.Product;
+import javastudyproject.model.User;
 import javax.ejb.Remote;
 
 /**
@@ -20,5 +23,5 @@ public interface OrderOps {
     public List<Order> getAllOrders();
     public List<Order> getAllOrdersByUserID(int userID);
     public void addNewOrder(Order order) throws Exception;
-
+    public HashMap<User, ArrayList<Order>> GetAllOrdersForAllUser();
 }

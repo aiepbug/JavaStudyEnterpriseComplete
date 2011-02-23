@@ -12,7 +12,6 @@ import javastudyproject.model.ReadOnlyUser;
 import javastudyproject.model.ReadWriteUser;
 import javastudyproject.model.User;
 import javastudyproject.reporter.SystemReporter;
-import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -34,7 +33,13 @@ public class UserOpsBean implements UserOps{
     @PersistenceContext(unitName="JavaStudyProject")
     private EntityManager em;
 
-
+    /**
+     * User login authentication
+     * @param userName
+     * @param password
+     * @return
+     * @throws Exception
+     */
     public User authenticate(String userName, String password) throws Exception {
 
         User user = null;
@@ -55,7 +60,43 @@ public class UserOpsBean implements UserOps{
         }
         return null;
     }
+    /**
+     * Store the from email address for the statistics email sender
+     * @param email
+     */
+    public void StoreEmailSourceAddress(String email)
+    {
+        try
+        {
+            em.persist(new AdministratorUser("SpecialEmailUser", "", "", "", email, "", ""));
+        }
+        catch(Exception e)
+        {
+            User user = em.find(User.class, "SpecialEmailUser");
+            user.setEmail(email);
+            em.merge(user);
+        }
 
+    }
+
+    /**
+     * Get the email of from address for the email scheduler sender
+     * @return
+     * @throws Exception
+     */
+    public String GetEmailSourceAddress() throws Exception
+    {
+        try
+        {
+           User user = em.find(User.class, "SpecialEmailUser");
+           return user.getEmail();
+        }
+        catch(Exception e)
+        {
+            SystemReporter.report("The source email was not found please configure it", true);
+        }
+        return null;
+    }
      /**
      * Adding new user
      * Verifying that all unique details are unique
@@ -115,22 +156,13 @@ public class UserOpsBean implements UserOps{
             switch(type)
             {
                 case Administrator:
-                //    em.getTransaction().begin();
                     em.persist(new AdministratorUser(userName, id, firstName, lastName, email, password, age));
-                //   em.flush();
-               //     em.getTransaction().commit();
                     break;
                 case ReadWriteUser:
-                //    em.getTransaction().begin();
                     em.persist(new ReadWriteUser(userName, id, firstName, lastName, email, password, age));
-                //    em.flush();
-               //     em.getTransaction().commit();
                     break;
                 case ReadOnlyUser:
-                //    em.getTransaction().begin();
                     em.persist(new ReadOnlyUser(userName, id, firstName, lastName, email, password, age, ownningUserName, readOnlyUserOrderId));
-                 //   em.flush();
-                //   em.getTransaction().commit();
                     break;
             }
         }
@@ -214,16 +246,10 @@ public class UserOpsBean implements UserOps{
         }
         try
         {
-        //    em.getTransaction().begin();
             em.merge(user);
-        //    em.getTransaction().commit();
         }
         catch(Exception e)
         {
-         //   if (em.getTransaction().isActive())
-       //     {
-        //        em.getTransaction().rollback();
-        //    }
             SystemReporter.report(
                     "Catched exception when performed write to DB: " + e.getMessage(), true);
         }
@@ -292,17 +318,10 @@ public class UserOpsBean implements UserOps{
             SystemReporter.report("Didn't find user with given name", true);
         try
         {
-          //  em.getTransaction().begin();
             em.remove(user);
-         //   em.flush();
-        //    em.getTransaction().commit();
         }
         catch(Exception e)
         {
-         //   if (em.getTransaction().isActive())
-         //   {
-         //       em.getTransaction().rollback();
-         //   }
             SystemReporter.report(
                     "Catched exception when performed write to DB: " + e.getMessage(), true);
         }
@@ -336,13 +355,20 @@ public class UserOpsBean implements UserOps{
         }
     }
 
+    /**
+     * Get All user from DB
+     * @return
+     */
     public List<User> getAllUsers()
     {
        Query query = em.createQuery("SELECT u FROM User u");
        return (List<User>) query.getResultList();
     }
 
-    @Override
+    /**
+     * Method that creates the first admin user
+     * @throws Exception
+     */
     public void createAdminUserIfNeeded() throws Exception
     {
         try
@@ -353,18 +379,11 @@ public class UserOpsBean implements UserOps{
         {
             try
             {
-                //em.getTransaction().begin();
                 em.persist(new AdministratorUser("admin", "admin", "admin",
                         "admin", "alonpis@gmail.com", "123456", "99"));
-                //em.flush();
-                //em.getTransaction().commit();
             }
             catch(Exception ex)
             {
-             //   if (em.getTransaction().isActive())
-            //    {
-            //        em.getTransaction().rollback();
-           //        }
                 SystemReporter.report(
                         "Catched exception when performed write to DB: " + ex.getMessage(),true);
             }

@@ -1,13 +1,17 @@
 package javastudyproject.schedulerservice;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javastudyproject.emailsender.EmailSenderService;
 import javastudyproject.model.Order;
 import javastudyproject.model.Product;
 import javastudyproject.model.User;
 import javastudyproject.service.OrderOps;
 import javastudyproject.service.ProductsOps;
-import javastudyproject.service.UserOps;
 import javax.ejb.EJB;
 import javax.ejb.Schedule;
 import javax.ejb.Stateless;
@@ -15,45 +19,41 @@ import javax.ejb.Stateless;
 @Stateless
 public class SchedulerTimerServiceBean implements SchedulerTimerService {
 
-    @EJB OrderOps orderService;
-    @EJB UserOps userService;
-    @EJB ProductsOps productService;
-    @EJB EmailSenderService emailService;
+    @EJB
+    private OrderOps orderService;
+    @EJB
+    private ProductsOps productService;
+    @EJB
+    private EmailSenderService emailService;
 
-    //@Schedule(minute = "00", hour = "08", dayOfWeek="*", timezone="GMT+2")
-    @Schedule(dayOfWeek = "*", hour = "*", minute = "*/1", timezone = "GMT+2") //For debug
-    private void sendOrderUpdate()
+    //@Schedule(dayOfWeek = "*", hour = "*", minute = "*/1", timezone = "GMT+2") // for debugging
+    @Schedule(minute = "00", hour = "08", dayOfWeek="*", timezone="GMT+2")
+    public void sendOrderUpdate()
     {
-        List<User> users  = userService.getAllUsers();
+        HashMap<User, ArrayList<Order>> orderUsers = new HashMap<User, ArrayList<Order>>();
+        orderUsers = orderService.GetAllOrdersForAllUser();
 
-        for (User user: users)
+        Set set = orderUsers.entrySet();
+
+        Iterator i = set.iterator();
+
+        while(i.hasNext())
         {
-             List<Order> currOrders = null;
-             List<Order> orders = orderService.getAllOrders();
-             for (Order order: orders)
+            Map.Entry<User, ArrayList<Order>> me = (Map.Entry<User, ArrayList<Order>>)i.next();
+           try
              {
-                 if(order.getUser().getEmail().equals(user.getEmail()))
-                 {
-                    currOrders.add(order);
-                 }
-            }
-             if (currOrders != null)
+                 emailService.sendOrderUpdateToUser(me.getKey(), me.getValue());
+             }
+             catch(Exception e)
              {
-                 try
-                 {
-                    emailService.sendOrderUpdateToUser(user, currOrders);
-                 }
-                 catch(Exception e)
-                 {
-                     System.out.println("Failed to send email to user: "
-                             + user.getEmail() + ", reason: " + e.getMessage() );
-                 }
+                 System.out.println("Failed to send email to user: "
+                         + me.getKey().getEmail() + ", reason: " + e.getMessage() );
              }
         }
     }
 
-  //@Schedule(minute = "59", hour = "23", dayOfWeek="*", timezone="GMT+2")
-    @Schedule(dayOfWeek = "*", hour = "*", minute = "*/3", timezone = "GMT+2")//For debug
+    //@Schedule(dayOfWeek = "*", hour = "*", minute = "*/3", timezone = "GMT+2")//For debug
+    @Schedule(minute = "59", hour = "23", dayOfWeek="*", timezone="GMT+2")
     private void sendProductPopularityStatistics()
     {
         String toAddress = "alonpis@gmail.com";

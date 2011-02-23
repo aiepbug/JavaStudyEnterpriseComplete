@@ -1,6 +1,6 @@
 package javastudyproject.emailsender;
 
-import java.util.List;
+import java.util.ArrayList;
 import javax.mail.Session;
 import javax.mail.Message;
 import javax.mail.Transport;
@@ -12,6 +12,8 @@ import javastudyproject.model.Order.StateType;
 import javastudyproject.model.Product;
 import javastudyproject.model.User;
 import javastudyproject.reporter.SystemReporter;
+import javastudyproject.service.UserOps;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.mail.Multipart;
 import javax.mail.internet.MimeBodyPart;
@@ -22,6 +24,8 @@ import javax.naming.NamingException;
 @Stateless
 public class EmailSenderServiceBean implements EmailSenderService {
 
+    @EJB
+    private UserOps userService;
     /**
      * Please configure the email session using this instructions:
      * http://javaeenotes.blogspot.com/2010/04/using-javamail-api-with-glassfish-and.html
@@ -33,13 +37,22 @@ public class EmailSenderServiceBean implements EmailSenderService {
    public void sendMail(String toAddress, String subject, String body) throws Exception
    {
 
-        String fromAddress = "j2eeStudyProject@gmai.com";
+        String fromAddress;
+        try
+        {
+            fromAddress = userService.GetEmailSourceAddress();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e + " configure default user");
+            fromAddress = "admin@javaproj.com";
+        }
 
         Session session = setupConnection();
 
         try {
                 Message msg = new MimeMessage(session);
-                msg.setFrom();
+                msg.setFrom(new InternetAddress(fromAddress));
                 msg.setRecipients(
                 Message.RecipientType.TO,
                 InternetAddress.parse(toAddress, false));
@@ -79,9 +92,9 @@ public class EmailSenderServiceBean implements EmailSenderService {
     * @param orders
     * @throws Exception
     */
-   public void sendOrderUpdateToUser(User user, List<Order> orders) throws Exception
+   public void sendOrderUpdateToUser(User user, ArrayList<Order> orders) throws Exception
    {
-       List<Order> releventOrders = null;
+       ArrayList<Order> releventOrders = new ArrayList<Order>();
        for (Order order: orders)
        {
            if (order.getState() != StateType.Finished)
@@ -95,8 +108,9 @@ public class EmailSenderServiceBean implements EmailSenderService {
        String body = "Dear " + user.getFirstName() + " this is your order info:\n";
        for (Order releventOrder : releventOrders)
        {
-           body.concat("Order number: "+ releventOrder.getRunId() + " ; Order state: "
-                   + releventOrder.getState()+ " ; Delivery date: " + releventOrder.getDeliveryDate());
+           body = body + "\nOrder number: "+ releventOrder.getRunId() + " ; Order state: "
+                   + releventOrder.getState()+ " ; Delivery date: " + 
+                   (releventOrder.getDeliveryDate() == null ? "Self pickup" : releventOrder.getDeliveryDate());
        }
        sendMail(user.getEmail(), subject, body);
    }

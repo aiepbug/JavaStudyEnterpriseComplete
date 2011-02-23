@@ -12,7 +12,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 /**
- * The class handling all products operations
+ * The class handling category operations
  * @author alon
  */
 @Stateless

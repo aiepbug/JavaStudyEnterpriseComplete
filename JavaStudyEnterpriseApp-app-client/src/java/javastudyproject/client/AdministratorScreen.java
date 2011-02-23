@@ -26,7 +26,8 @@ public class AdministratorScreen {
         System.out.println("2. Customers  Management");
         System.out.println("3. Orders  Management");
         System.out.println("4. Reports\n");
-        System.out.println("5. Exit\n");
+        System.out.println("5. Choose src email address for emails\n");
+        System.out.println("6. Exit\n");
 
         System.out.print("Your choise: ");
 
@@ -39,6 +40,13 @@ public class AdministratorScreen {
                 case 3: { new OrdersScreen(); }break;
                 case 4: { new ReportsScreen(); }break;
                 case 5: {
+                     System.out.println("Enter wmail srs address: ");
+                     String userName = reader.readLine();
+                     Main.userService.StoreEmailSourceAddress(userName);
+                     System.out.println("Email stored!");
+                }
+                break;
+                case 6: {
                     new LoginScreen();
                 }break;
             }

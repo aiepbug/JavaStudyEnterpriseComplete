@@ -1,10 +1,14 @@
 package javastudyproject.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import javastudyproject.model.Order;
 import javastudyproject.model.Product;
 import javastudyproject.model.User;
 import javastudyproject.reporter.SystemReporter;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -55,16 +59,10 @@ public class OrderOpsBean implements OrderOps{
         }
         try
         {
-         //   em.getTransaction().begin();
             em.remove(order);
-         //   em.getTransaction().commit();
         }
         catch(Exception e)
         {
-        //    if (em.getTransaction().isActive())
-        //    {
-         //       em.getTransaction().rollback();
-         //   }
             SystemReporter.report(
                     "Catched exception when performed write to DB: " + e.getMessage(), true);
         }
@@ -83,6 +81,11 @@ public class OrderOpsBean implements OrderOps{
        }
     }
 
+    /**
+     * Printing order by his state
+     * @param state
+     * @throws Exception
+     */
     public void printOrdersByState(Order.StateType state) throws Exception
     {
         SystemReporter.report("Printing all orders with this state: " + state);
@@ -98,6 +101,12 @@ public class OrderOpsBean implements OrderOps{
         }
     }
 
+    /**
+     * Get orders by Purchased Products
+     * @param productToFind
+     * @return
+     * @throws Exception
+     */
     public List<Order> getOrdersUserNamesByPurchasedProduct(Product productToFind) throws Exception
     {
         SystemReporter.report("Finding all user that purchased " + productToFind.getName() + "...");
@@ -113,6 +122,11 @@ public class OrderOpsBean implements OrderOps{
         return orders;
     }
 
+    /**
+     * Print order helper
+     * @param order
+     * @throws Exception
+     */
     private void printOrderImpl(Order order) throws Exception
     {
         SystemReporter.report("Order info for user " + order.getUser().getUserName() + ": ", new String[] {
@@ -124,12 +138,22 @@ public class OrderOpsBean implements OrderOps{
         });
     }
 
+    /**
+     * Get all orders
+     * @return
+     */
     public List<Order> getAllOrders()
     {
        Query query = em.createQuery("SELECT o FROM Order o");
        return query.getResultList();
     }
 
+    /**
+     * Get order by generated id
+     * user for the read only users
+     * @param userID
+     * @return
+     */
     public List<Order> getAllOrdersByUserID(int userID)
     {
         Query query = em.createQuery("select o from Order o where o.id = " + userID);
@@ -137,6 +161,11 @@ public class OrderOpsBean implements OrderOps{
         return orders;
     }
 
+    /**
+     * add new oder to DB
+     * @param order
+     * @throws Exception
+     */
     public void addNewOrder(Order order) throws Exception
     {
         try
@@ -153,5 +182,38 @@ public class OrderOpsBean implements OrderOps{
                     "Catched exception when performed write to DB: " + ex.getMessage(), true);
         }
         SystemReporter.report("Added new order");
+    }
+
+    /**
+     * This method used for the scheduler in order
+     * to get all orders for each user and send the
+     * by email
+     * @return
+     */
+    public HashMap<User, ArrayList<Order>> GetAllOrdersForAllUser()
+    {
+
+        HashMap<User, ArrayList<Order>> productAmount =  new HashMap<User, ArrayList<Order>>();
+        Query query = em.createQuery("SELECT u FROM User u");
+        List<User> users  = query.getResultList();
+        ArrayList<Order> currOrders = new ArrayList<Order>();
+        for (User user: users)
+        {
+             
+             List<Order> orders = getAllOrders();
+             for (Order order: orders)
+             {
+                 if(order.getUser().getUserName().equals(user.getUserName()))
+                 {
+                    currOrders.add(order);
+                 }
+            }
+            if (!currOrders.isEmpty())
+            {
+                productAmount.put(user, (ArrayList<Order>) currOrders.clone());
+            }
+            currOrders.clear();
+        }
+        return productAmount;
     }
 }
