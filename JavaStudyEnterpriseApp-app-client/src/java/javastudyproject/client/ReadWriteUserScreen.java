@@ -291,10 +291,10 @@ public class ReadWriteUserScreen {
             switch (choise) {
                 case 1:
                     Order newOrder = new Order(workingUser, date, deliveryType);
+                    
                     newOrder.addMultipleProducts(myProductList);
                     newOrder = updateOrderTotalPrice(newOrder);
                     updateTheProductsQuantityByOrder(newOrder);
-                    Main.productService.printAllProducts();
                     Main.orderService.addNewOrder(newOrder);
 
                     break;

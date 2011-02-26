@@ -182,7 +182,7 @@ public class AdminWebService {
         }
         catch (Exception ex)
         {
-            return null;
+           return null;
         }
         return productService.getAllCategories();
     }
